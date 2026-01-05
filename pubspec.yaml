@@ -45,6 +45,7 @@ flutter:
     - assets/bor.png
     - assets/perlengkapan.png
     - assets/adduser.png
+    - assets/search.png
 
 # =========================
 # SPLASH SCREEN CONFIG

@@ -1,3 +1,4 @@
+// lib/pages/Geofisika/geofisika_page.dart
 import 'package:flutter/material.dart';
 import '../bottom_nav.dart';
 import 'list_alat_gf_page.dart';
@@ -16,7 +17,6 @@ class GeofisikaPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -25,7 +25,7 @@ class GeofisikaPage extends StatelessWidget {
             children: [
               const SizedBox(height: 16),
 
-              // ================= HEADER =================
+              /// HEADER
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -78,6 +78,7 @@ class GeofisikaPage extends StatelessWidget {
 
               const SizedBox(height: 32),
 
+              /// TITLE
               Text(
                 'Dashboard',
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -87,7 +88,7 @@ class GeofisikaPage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ================= CONTENT =================
+              /// DASHBOARD MENU
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -140,12 +141,24 @@ class GeofisikaPage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _menuCardWide(
-                        context,
-                        title: 'Pemeliharaan Alat',
-                        subtitle: 'Maintenance & servis',
-                        image: 'assets/optimizing.png',
-                        onTap: () {},
+                      Row(
+                        children: [
+                          _menuCard(
+                            context,
+                            title: 'Pemeliharaan',
+                            subtitle: 'Maintenance',
+                            image: 'assets/optimizing.png',
+                            onTap: () {},
+                          ),
+                          const SizedBox(width: 16),
+                          _menuCard(
+                            context,
+                            title: 'Pencarian',
+                            subtitle: 'Pencarian Alat',
+                            image: 'assets/search.png',
+                            onTap: () {},
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 100),
                     ],
@@ -157,6 +170,7 @@ class GeofisikaPage extends StatelessWidget {
         ),
       ),
 
+      /// BOTTOM NAV
       bottomNavigationBar: BottomNav(
         activeIndex: 0,
         role: role,
@@ -164,7 +178,7 @@ class GeofisikaPage extends StatelessWidget {
     );
   }
 
-  // ================= GRID CARD =================
+  /// MENU CARD (SEMUA UKURAN SAMA)
   Widget _menuCard(
       BuildContext context, {
         required String title,
@@ -214,64 +228,6 @@ class GeofisikaPage extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // ================= WIDE CARD =================
-  Widget _menuCardWide(
-      BuildContext context, {
-        required String title,
-        required String subtitle,
-        required String image,
-        required VoidCallback onTap,
-      }) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Image.asset(image, width: 56, height: 56),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
         ),
       ),
     );
