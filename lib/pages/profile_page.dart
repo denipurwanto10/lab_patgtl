@@ -16,7 +16,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String username = '-';
+  String fullname = '-';
   String role = '-';
   bool isLoading = true;
 
@@ -28,8 +28,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadProfile() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
     setState(() {
-      username = prefs.getString('username') ?? '-';
+      fullname = prefs.getString('fullname') ?? '-';
       role = prefs.getString('role') ?? '-';
       isLoading = false;
     });
@@ -56,7 +58,9 @@ class _ProfilePageState extends State<ProfilePage> {
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(32),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -71,12 +75,16 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 20),
 
-            const Icon(Icons.logout_rounded, color: Colors.red, size: 30),
+            const Icon(Icons.logout_rounded,
+                color: Colors.red, size: 30),
             const SizedBox(height: 16),
 
             const Text(
               'Keluar Akun?',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
 
@@ -89,7 +97,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             Row(
               children: [
-                // ===== BATAL (DIUBAH SESUAI PERMINTAAN) =====
                 Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
@@ -111,10 +118,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
-                // ===== LOGOUT (TIDAK DIUBAH) =====
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -160,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (_) => HomePage()),
+              MaterialPageRoute(builder: (_) => const HomePage()),
                   (route) => false,
             );
           },
@@ -191,8 +195,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   _profileItem(
                     context,
                     icon: Icons.person_outline,
-                    label: 'Username',
-                    value: username,
+                    label: 'Nama Lengkap',
+                    value: fullname,
                   ),
                   const SizedBox(height: 18),
                   const Divider(),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../services/auth_service.dart';
+import '../services/auth.dart';
 import 'register_page.dart';
 import 'home_page.dart';
 
@@ -19,8 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  bool get isDark =>
-      Theme.of(context).brightness == Brightness.dark;
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
   @override
   void dispose() {
@@ -29,35 +27,32 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  // ================= LOGIN =================
   Future<void> _loginUser() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
     if (username.isEmpty || password.isEmpty) {
-      _showLoginResult(
-        success: false,
-        message: 'Username dan password wajib diisi',
-      );
+      _showLoginResult(success: false, message: 'Username dan password wajib diisi');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final result = await AuthService.login(
-        username: username,
-        password: password,
-      );
+      final result = await Auth.login(username, password);
 
       if (result['success'] == true) {
         final userData = result['data']['data'];
-        final String role = userData['role'];
+        final String role = userData['role'] ?? 'petugas';
+        final String fullname = userData['fullname'] ?? username;
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         await prefs.setBool('isLogin', true);
         await prefs.setString('username', username);
         await prefs.setString('role', role);
+        await prefs.setString('fullname', fullname);
 
         _showLoginResult(
           success: true,
@@ -75,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
         message: 'Terjadi kesalahan koneksi',
       );
     } finally {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -112,21 +108,13 @@ class _LoginPageState extends State<LoginPage> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: success
-                      ? [
-                    Colors.green.withOpacity(0.2),
-                    Colors.green.withOpacity(0.05)
-                  ]
-                      : [
-                    Colors.red.withOpacity(0.2),
-                    Colors.red.withOpacity(0.05)
-                  ],
+                      ? [Colors.green.withOpacity(0.2), Colors.green.withOpacity(0.05)]
+                      : [Colors.red.withOpacity(0.2), Colors.red.withOpacity(0.05)],
                 ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                success
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.error_outline_rounded,
+                success ? Icons.check_circle_outline_rounded : Icons.error_outline_rounded,
                 size: 32,
                 color: success ? Colors.green : Colors.red,
               ),
@@ -164,10 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFD32F2F),
-                            Color(0xFFB71C1C),
-                          ],
+                          colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
@@ -198,21 +183,21 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => HomePage()),
+          MaterialPageRoute(builder: (_) => const HomePage()),
               (route) => false,
         );
       });
     }
   }
 
-  // ================= UI LOGIN =================
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-      isDark ? const Color(0xFF121212) : const Color(0xFFF5F6F8),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F6F8),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -223,135 +208,17 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
                 Text(
                   'Laboratorium & Sarana',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
+                  style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black),
                 ),
                 Text(
                   'Teknik PATGTL',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black),
                 ),
                 const SizedBox(height: 32),
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Masuk',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Silakan login untuk melanjutkan',
-                        style: TextStyle(
-                          color:
-                          isDark ? Colors.grey[400] : Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildInput(
-                        controller: _usernameController,
-                        hint: 'Username',
-                        icon: Icons.person_outline,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInput(
-                        controller: _passwordController,
-                        hint: 'Password',
-                        icon: Icons.lock_outline,
-                        obscure: _obscurePassword,
-                        suffix: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () => setState(
-                                  () => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed:
-                          _isLoading ? null : _loginUser,
-                          child: _isLoading
-                              ? const CircularProgressIndicator(
-                              color: Colors.white)
-                              : const Text(
-                            'Masuk',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Belum punya akun? ',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                    const RegisterPage()),
-                              );
-                            },
-                            child: const Text(
-                              'Daftar',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                _buildCard(),
               ],
             ),
           ),
@@ -360,30 +227,125 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildInput({
+  Widget _buildCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Masuk',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Silakan login untuk melanjutkan',
+            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          _field(_textField(
+            controller: _usernameController,
+            label: 'Username',
+            icon: Icons.person_outline,
+          )),
+          _field(_textField(
+            controller: _passwordController,
+            label: 'Password',
+            icon: Icons.lock_outline,
+            obscureText: _obscurePassword,
+            suffixIcon: IconButton(
+              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+          )),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _loginUser,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                'Masuk',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Belum punya akun? ',
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const RegisterPage()));
+                },
+                child: const Text(
+                  'Daftar',
+                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= COMPONENT TEXTFIELD =================
+  Widget _field(Widget child) => Padding(padding: const EdgeInsets.only(bottom: 18), child: child);
+
+  Widget _textField({
     required TextEditingController controller,
-    required String hint,
+    required String label,
     required IconData icon,
-    bool obscure = false,
-    Widget? suffix,
+    bool obscureText = false,
+    Widget? suffixIcon,
   }) {
     return TextField(
       controller: controller,
-      obscureText: obscure,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+      obscureText: obscureText,
       decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: isDark ? Colors.grey[400] : Colors.grey,
-        ),
+        labelText: label,
         prefixIcon: Icon(icon),
-        suffixIcon: suffix,
+        suffixIcon: suffixIcon,
         filled: true,
-        fillColor:
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF9FAFB),
-        border: OutlineInputBorder(
+        fillColor: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFFDFDFD),
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.6),
         ),
       ),
     );

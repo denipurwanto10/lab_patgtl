@@ -1,7 +1,7 @@
-// lib/pages/Geofisika/geofisika_page.dart
 import 'package:flutter/material.dart';
 import '../bottom_nav.dart';
 import 'list_alat_gf_page.dart';
+import '../home_page.dart';
 
 class GeofisikaPage extends StatelessWidget {
   final String role;
@@ -41,6 +41,23 @@ class GeofisikaPage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HomePage(),
+                          ),
+                              (route) => false,
+                        );
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(Icons.arrow_back_ios_new, size: 20),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Container(
                       width: 60,
                       height: 60,
@@ -78,7 +95,6 @@ class GeofisikaPage extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              /// TITLE
               Text(
                 'Dashboard',
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -104,8 +120,7 @@ class GeofisikaPage extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      ListAlatGFPage(role: role),
+                                  builder: (_) => ListAlatGFPage(role: role),
                                 ),
                               );
                             },
@@ -170,7 +185,6 @@ class GeofisikaPage extends StatelessWidget {
         ),
       ),
 
-      /// BOTTOM NAV
       bottomNavigationBar: BottomNav(
         activeIndex: 0,
         role: role,
@@ -178,7 +192,7 @@ class GeofisikaPage extends StatelessWidget {
     );
   }
 
-  /// MENU CARD (SEMUA UKURAN SAMA)
+  /// MENU CARD DENGAN EFEK (RIPPLE + SHADOW + SCALE)
   Widget _menuCard(
       BuildContext context, {
         required String title,
@@ -189,9 +203,8 @@ class GeofisikaPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Expanded(
-      child: InkWell(
+      child: _pressableCard(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
         child: Container(
           height: 170,
           padding: const EdgeInsets.all(18),
@@ -200,9 +213,9 @@ class GeofisikaPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -229,6 +242,21 @@ class GeofisikaPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// WIDGET PRESSABLE CARD (RIPPLE + SCALE)
+  Widget _pressableCard({required Widget child, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      splashColor: Colors.blue.withOpacity(0.2),
+      highlightColor: Colors.transparent,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: child,
       ),
     );
   }

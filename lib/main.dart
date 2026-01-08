@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
 
@@ -57,31 +56,41 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<bool> _loginFuture;
+  bool? _isLogin;
 
   @override
   void initState() {
     super.initState();
-    _loginFuture = _checkLogin();
+    _initApp();
   }
 
-  /// CEK STATUS LOGIN (DIPANGGIL SEKALI)
-  Future<bool> _checkLogin() async {
+  Future<void> _initApp() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLogin') ?? false;
+    final isLogin = prefs.getBool('isLogin') ?? false;
+
+    setState(() {
+      _isLogin = isLogin;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
+    // Loading indicator jika SharedPreferences masih dibaca
+    if (_isLogin == null) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'LAB PATGTL',
-
-      /// THEME
-      themeMode:
-      themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
 
       theme: ThemeData(
         useMaterial3: true,
@@ -95,23 +104,7 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: Colors.grey[900],
       ),
 
-      /// LOGIN HANDLER
-      home: FutureBuilder<bool>(
-        future: _loginFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          if (snapshot.data == true) {
-            return HomePage();
-          }
-
-          return const LoginPage();
-        },
-      ),
+      home: _isLogin! ? const HomePage() : const LoginPage(),
     );
   }
 }
